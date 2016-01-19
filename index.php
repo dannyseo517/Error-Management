@@ -1,14 +1,6 @@
 <?php
 /**
- * Class OneFileLoginApplication
- *
- * An entire php application with user registration, login and logout in one file.
- * Uses very modern password hashing via the PHP 5.5 password hashing functions.
- * This project includes a compatibility file to make these functions available in PHP 5.3.7+ and PHP 5.4+.
- *
- * @author Panique
- * @link https://github.com/panique/php-login-one-file/
- * @license http://opensource.org/licenses/MIT MIT License
+ * Login authentication
  */
 class OneFileLoginApplication
 {
@@ -48,13 +40,6 @@ class OneFileLoginApplication
         }
     }
 
-    /**
-     * Performs a check for minimum requirements to run this application.
-     * Does not run the further application when PHP version is lower than 5.3.7
-     * Does include the PHP password compatibility library when PHP version lower than 5.5.0
-     * (this library adds the PHP 5.5 password hashing functions to older versions of PHP)
-     * @return bool Success status of minimum requirements check, default is false
-     */
     private function performMinimumRequirementsCheck()
     {
         if (version_compare(PHP_VERSION, '5.3.7', '<')) {
@@ -65,12 +50,11 @@ class OneFileLoginApplication
         } elseif (version_compare(PHP_VERSION, '5.5.0', '>=')) {
             return true;
         }
-        // default return
         return false;
     }
 
     /**
-     * This is basically the controller that handles the entire flow of the application.
+     * controller
      */
     public function runApplication()
     {
@@ -79,11 +63,8 @@ class OneFileLoginApplication
             $this->doRegistration();
             $this->showPageRegistration();
         } else {
-            // start the session, always needed!
             $this->doStartSession();
-            // check for possible user interactions (login with session/post data or logout)
             $this->performUserLoginAction();
-            // show "page", according to user's login status
             if ($this->getUserLoginStatus()) {
                 $this->showPageLoggedIn();
             } else {
@@ -93,7 +74,7 @@ class OneFileLoginApplication
     }
 
     /**
-     * Creates a PDO database connection (in this case to a SQLite flat-file database)
+     * Creates a PDO database connection 
      * @return bool Database creation success status, false by default
      */
     private function createDatabaseConnection()
@@ -110,8 +91,7 @@ class OneFileLoginApplication
     }
 
     /**
-     * Handles the flow of the login/logout process. According to the circumstances, a logout, a login with session
-     * data or a login with post data will be performed
+     * Handles the flow of the login/logout process. 
      */
     private function performUserLoginAction()
     {
@@ -125,8 +105,7 @@ class OneFileLoginApplication
     }
 
     /**
-     * Simply starts the session.
-     * It's cleaner to put this into a method than writing it directly into runApplication()
+     * starts the session.
      */
     private function doStartSession()
     {
@@ -134,7 +113,7 @@ class OneFileLoginApplication
     }
 
     /**
-     * Set a marker (NOTE: is this method necessary ?)
+     * Set a marker
      */
     private function doLoginWithSessionData()
     {
@@ -210,17 +189,9 @@ class OneFileLoginApplication
         $query->bindValue(':user_name', $_POST['user_name']);
         $query->execute();
 
-        // Btw that's the weird way to get num_rows in PDO with SQLite:
-        // if (count($query->fetchAll(PDO::FETCH_NUM)) == 1) {
-        // Holy! But that's how it is. $result->numRows() works with SQLite pure, but not with SQLite PDO.
-        // This is so crappy, but that's how PDO works.
-        // As there is no numRows() in SQLite/PDO (!!) we have to do it this way:
-        // If you meet the inventor of PDO, punch him. Seriously.
         $result_row = $query->fetchObject();
         if ($result_row) {
-            // using PHP 5.5's password_verify() function to check password
             if (password_verify($_POST['user_password'], $result_row->user_password_hash)) {
-                // write user data into PHP SESSION [a file on your server]
                 $_SESSION['user_name'] = $result_row->user_name;
                 $_SESSION['user_email'] = $result_row->user_email;
                 $_SESSION['user_is_logged_in'] = true;
@@ -232,7 +203,6 @@ class OneFileLoginApplication
         } else {
             $this->feedback = "This user does not exist.";
         }
-        // default return
         return false;
     }
 
@@ -298,8 +268,6 @@ class OneFileLoginApplication
         $user_name = htmlentities($_POST['user_name'], ENT_QUOTES);
         $user_email = htmlentities($_POST['user_email'], ENT_QUOTES);
         $user_password = $_POST['user_password_new'];
-        // crypt the user's password with the PHP 5.5's password_hash() function, results in a 60 char hash string.
-        // the constant PASSWORD_DEFAULT comes from PHP 5.5 or the password_compatibility_library
         $user_password_hash = password_hash($user_password, PASSWORD_DEFAULT);
 
         $sql = 'SELECT * FROM users WHERE user_name = :user_name OR user_email = :user_email';
@@ -308,8 +276,6 @@ class OneFileLoginApplication
         $query->bindValue(':user_email', $user_email);
         $query->execute();
 
-        // As there is no numRows() in SQLite/PDO (!!) we have to do it this way:
-        // If you meet the inventor of PDO, punch him. Seriously.
         $result_row = $query->fetchObject();
         if ($result_row) {
             $this->feedback = "Sorry, that username / email is already taken. Please choose another one.";
@@ -320,8 +286,6 @@ class OneFileLoginApplication
             $query->bindValue(':user_name', $user_name);
             $query->bindValue(':user_password_hash', $user_password_hash);
             $query->bindValue(':user_email', $user_email);
-            // PDO's execute() gives back TRUE when successful, FALSE when not
-            // @link http://stackoverflow.com/q/1661863/1114320
             $registration_success_state = $query->execute();
 				
             if ($registration_success_state) {
@@ -331,7 +295,6 @@ class OneFileLoginApplication
                 $this->feedback = "Sorry, your registration failed. Please go back and try again.";
             }
         }
-        // default return
         return false;
     }
 
