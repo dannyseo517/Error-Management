@@ -1,0 +1,26 @@
+ .modal-dialog
+{
+    width: 900px; /* your width */
+}
+
+.table-hover tbody tr:hover td
+{
+    background-color: #65BBE8;
+	cursor: pointer;
+}
+
+.panel-heading {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+ }
+ 
+ .inv {
+    display: none;
+}
+
+
+.center_row{
+	text-align: center;
+}
+
